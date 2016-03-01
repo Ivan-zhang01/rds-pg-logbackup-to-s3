@@ -1,4 +1,3 @@
-# rds-pg-logbackup-to-s3
 
 やっつけ仕事
 
@@ -10,9 +9,6 @@
   - DescribeDBLogFiles
   - DownloadDBLogFilePortion
 3. 実行するEC2インスタンスでawscliの設定と、jqのインストール  
-  ```shell-session
-  # aws configure
-  # yum install jq
-  ```
-3. スクリプトを設置して中身の書き換えとかディレクトリの作成とか
-4. cron などで適当に回す
+4. スクリプトを設置して中身の書き換えとかディレクトリの作成とか
+5. cron などで適当に回す
+
