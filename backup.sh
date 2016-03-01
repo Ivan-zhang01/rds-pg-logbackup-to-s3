@@ -28,23 +28,27 @@ do
   elif [[ "${line}" =~ ^.*postgresql.log.`date +%Y-%m-%d`-[0-9][0-9]$ ]]; then
     echo "${line} は当日のログのためバックアップしません"
   else
+    ## ファイルの日付取得
+    YEAR=`echo ${line} | sed -e "s/.*postgresql.log.\([2][0-9][0-9][0-9]\)-.*/\1/g"`
+    MONTH=`echo ${line} | sed -e "s/.*postgresql.log.[2][0-9][0-9][0-9]-\([0-9][0-9]\).*/\1/g"`
+
     ## ファイルの有無をチェック
     echo "ログファイル ${line} が、S3バケット ${S3_BUCKET} に存在するか確認"
-    aws s3 ls s3://${S3_BUCKET}/${RDS_INSTANCE}/`date +%Y`/`date +%m`/${line}.gz
+    aws s3 ls s3://${S3_BUCKET}/${RDS_INSTANCE}/${YEAR}/${MONTH}/${line}.gz
 
     ## いてなかったらファイルを落として・整形して・圧縮してアップロード
     if [ "$?" -ne 0 ]; then
       # 落として・整形(jq)・圧縮
       echo "ログファイル ${line} が、S3バケット ${S3_BUCKET} に存在しなかったので取得・整形"
       aws rds download-db-log-file-portion --db-instance-identifier=${RDS_INSTANCE} --log-file-name=${line} | jq -r "add" > ${LOGPATH}/logs/${line}
-      gzip ${LOGPATH}/logs/${line}
+      gzip --force ${LOGPATH}/logs/${line}
 
       # アップロード
       echo "ログファイル ${line} を、S3バケット ${S3_BUCKET} にアップロード"
-      aws s3 cp ${LOGPATH}/logs/${line}.gz s3://${S3_BUCKET}/${RDS_INSTANCE}/`date +%Y`/`date +%m`/${line}.gz
+      aws s3 cp ${LOGPATH}/logs/${line}.gz s3://${S3_BUCKET}/${RDS_INSTANCE}/${YEAR}/${MONTH}/${line}.gz
 
       # アップロード確認
-      aws s3 ls s3://${S3_BUCKET}/${RDS_INSTANCE}/`date +%Y`/`date +%m`/${line}.gz
+      aws s3 ls s3://${S3_BUCKET}/${RDS_INSTANCE}/${YEAR}/${MONTH}/${line}.gz
       if [ "$?" -eq 0 ]; then
         echo "ログファイル ${line} アップロードに成功しますた"
       else
@@ -55,4 +59,4 @@ do
 done
 
 ## 後処理(30日前の .gz ファイルを検索して削除する)
-find ${LOGPATH} -mtime 30 -type f -name \*.gz | xargs rm
+#find ${LOGPATH} -mtime 30 -type f -name \*.gz | xargs rm

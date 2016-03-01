@@ -9,7 +9,7 @@
   - 上記S3バケットへのアクセス権
   - DescribeDBLogFiles
   - DownloadDBLogFilePortion
-3. 実行するEC2インスタンスでawscliの設定と、jqのインストール
+3. 実行するEC2インスタンスでawscliの設定と、jqのインストール  
   ```shell-session
   # aws configure
   # yum install jq
